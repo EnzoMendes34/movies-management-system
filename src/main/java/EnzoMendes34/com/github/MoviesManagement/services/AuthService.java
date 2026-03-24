@@ -2,11 +2,14 @@ package EnzoMendes34.com.github.MoviesManagement.services;
 
 import EnzoMendes34.com.github.MoviesManagement.data.dto.auth.AccountCredentialsDTO;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.auth.TokenDTO;
+import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.ResourceNotFoundException;
 import EnzoMendes34.com.github.MoviesManagement.models.User;
 import EnzoMendes34.com.github.MoviesManagement.repositories.UserRepository;
 import EnzoMendes34.com.github.MoviesManagement.security.jwt.JwtTokenProvider;
 import EnzoMendes34.com.github.MoviesManagement.types.UserTypes;
+import EnzoMendes34.com.github.MoviesManagement.utils.ValidationUtils;
+import jakarta.validation.Validation;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Map;
 
 public class AuthService {
 
@@ -36,8 +40,6 @@ public class AuthService {
             throw new BadCredentialsException("It's not possible to signin with null credentials");
         }
 
-        User user = repository.findByUsername(credentials.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
         //validando a senha com o authenticationManager
         authenticationManager.authenticate(
@@ -46,6 +48,10 @@ public class AuthService {
                         credentials.getPassword()
                 )
         );
+
+        //Busca os dados
+        User user = repository.findByUsername(credentials.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
         //colocando os roles do usuário no token
         List<String> roles = user.getAuthorities()
@@ -58,15 +64,16 @@ public class AuthService {
 
     public AccountCredentialsDTO signup(AccountCredentialsDTO credentials){
         //checa e valida as credenciais enviadas
-        if(credentials == null || credentials.getUsername() == null || credentials.getPassword() == null) {
-            throw new BadCredentialsException("It's not possible to signup with null credentials");
-        }
+        ValidationUtils.validateRequiredFields(Map.of(
+                "username", credentials.getUsername(),
+                "password", credentials.getPassword()
+        ));
 
         if(repository.existsByUsername(credentials.getUsername())){
-            throw new BadCredentialsException("User already exists");
+            throw new BusinessException("User already exists");
         }
         if(repository.existsByEmail(credentials.getEmail())) {
-            throw new BadCredentialsException("E-mail already exists.");
+            throw new BusinessException("E-mail already exists.");
         }
 
         User user = new User();

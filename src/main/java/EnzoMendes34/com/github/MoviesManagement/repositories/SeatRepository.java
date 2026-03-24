@@ -29,4 +29,7 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
             @Param("sessionId") Long sessionId,
             @Param("roomId") Long roomId
     );
+
+    @Query("SELECT s FROM Seat s WHERE room.id = :roomId")
+    List<Seat> findByRoomId(@Param("roomId") Long roomId);
 }

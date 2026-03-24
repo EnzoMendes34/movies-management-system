@@ -1,8 +1,6 @@
 package EnzoMendes34.com.github.MoviesManagement.exceptions.handler;
 
-import EnzoMendes34.com.github.MoviesManagement.exceptions.ExceptionResponse;
-import EnzoMendes34.com.github.MoviesManagement.exceptions.InvalidJwtAuthenticationException;
-import EnzoMendes34.com.github.MoviesManagement.exceptions.ResourceNotFoundException;
+import EnzoMendes34.com.github.MoviesManagement.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -42,5 +40,23 @@ public class CustomEntityResponseHandler extends ResponseEntityExceptionHandler 
                 ex.getMessage(),
                 request.getDescription(false));
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(NullObjectException.class)
+    public final ResponseEntity<ExceptionResponse> handleNullObjectExceptions(Exception ex, WebRequest request){
+        ExceptionResponse response = new ExceptionResponse(
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public final ResponseEntity<ExceptionResponse> handleBusinessExceptions(Exception ex, WebRequest request){
+        ExceptionResponse response = new ExceptionResponse(
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false));
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
