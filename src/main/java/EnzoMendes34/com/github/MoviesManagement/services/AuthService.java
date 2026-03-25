@@ -9,17 +9,18 @@ import EnzoMendes34.com.github.MoviesManagement.repositories.UserRepository;
 import EnzoMendes34.com.github.MoviesManagement.security.jwt.JwtTokenProvider;
 import EnzoMendes34.com.github.MoviesManagement.types.UserTypes;
 import EnzoMendes34.com.github.MoviesManagement.utils.ValidationUtils;
-import jakarta.validation.Validation;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class AuthService {
 
     private final UserRepository repository;

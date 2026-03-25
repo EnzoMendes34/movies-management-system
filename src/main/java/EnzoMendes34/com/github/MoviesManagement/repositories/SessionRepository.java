@@ -19,8 +19,8 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     //verificar se existem sessões com horários iguais na mesma sala
     @Query("""
     SELECT COUNT(s) > 0 FROM Session s
-    WHERE s.room.id = :roomId 
-    AND s.status = 'SCHEDULED' 
+    WHERE s.room.id = :roomId
+    AND s.status = 'SCHEDULED'
     AND s.startTime < :endTime
     AND s.endTime > :startTime
 """)
@@ -28,5 +28,21 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             @Param("roomId") Long roomId,
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime
+    );
+
+    //verificar se existem sessões existentes para atualização de sessão
+    @Query("""
+       SELECT COUNT(s) > 0 FROM Session s
+       WHERE s.room.id = :roomId
+       AND s.id != :sessionId
+       AND s.status = 'SCHEDULED'
+       AND s.startTime < :endTime
+       AND s.endTime> :startTime
+""")
+    boolean existsConflictingSessionExcludingThis(
+            @Param("roomId") Long roomId,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("sessionId") Long sessionId
     );
 }

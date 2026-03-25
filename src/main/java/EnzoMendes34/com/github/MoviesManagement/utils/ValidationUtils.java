@@ -13,7 +13,9 @@ public class ValidationUtils {
 
         for (Map.Entry<String, Object> entry : fields.entrySet()) {
             Object value = entry.getValue();
-            if (value == null || (value instanceof String str && str.isBlank())) {
+            if (value == null ||
+                    (value instanceof String str && str.isBlank())
+            || (value instanceof Number num && num.longValue() <= 0)) {
                 throw new NullObjectException(entry.getKey() + " must not be null or Empty.");
             }
         }
