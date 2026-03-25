@@ -68,6 +68,10 @@ public class SessionService {
             throw new NullObjectException("It is not possible to create a null object.");
         }
 
+        if(dto.getStartTime() == null || dto.getEndTime() == null) {
+            throw new NullObjectException("Start time and end time must not be null");
+        }
+
         ValidationUtils.validateRequiredFields(Map.of(
                 "movieId", dto.getMovieId(),
                 "roomId", dto.getRoomId(),
@@ -81,6 +85,10 @@ public class SessionService {
         if(dto.getStartTime().isAfter(dto.getEndTime()) ||
                 dto.getStartTime().isEqual(dto.getEndTime())) {
             throw new BusinessException("Start time must before end time.");
+        }
+
+        if(dto.getDiscountPercentage() != null && (dto.getDiscountPercentage() < 0 || dto.getDiscountPercentage() > 100)) {
+            throw new BusinessException("Discount must be between 0 and 100.");
         }
 
         boolean hasConflict = repository.existsConflictingSession(
@@ -105,6 +113,12 @@ public class SessionService {
             throw new NullObjectException("It is not possible to create a null object.");
         }
 
+        if(dto.getStartTime() == null || dto.getEndTime() == null) {
+            throw new NullObjectException("Start time and end time must not be null");
+        }
+
+
+
         ValidationUtils.validateRequiredFields(Map.of(
                 "id", dto.getId(),
                 "movieId", dto.getMovieId(),
@@ -120,6 +134,11 @@ public class SessionService {
                 dto.getStartTime().isEqual(dto.getEndTime())) {
             throw new BusinessException("Start time must before end time.");
         }
+
+        if(dto.getDiscountPercentage() != null && (dto.getDiscountPercentage() < 0 || dto.getDiscountPercentage() > 100)) {
+            throw new BusinessException("Discount must be between 0 and 100.");
+        }
+
 
         boolean hasConflict = repository.existsConflictingSessionExcludingThis(dto.getRoomId(),
                 dto.getStartTime(),
@@ -166,5 +185,6 @@ public class SessionService {
         session.setLanguage(dto.getLanguage());
         session.setPriceInCents(dto.getPriceInCents());
         session.setStatus(dto.getStatus());
+        session.setDiscountPercentage(dto.getDiscountPercentage());
     }
 }

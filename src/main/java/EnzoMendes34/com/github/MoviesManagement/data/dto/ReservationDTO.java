@@ -4,6 +4,7 @@ import EnzoMendes34.com.github.MoviesManagement.types.ReservationStatus;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 public class ReservationDTO {
@@ -15,6 +16,7 @@ public class ReservationDTO {
     private int totalPriceInCents;
     private ReservationStatus status;
     private LocalDateTime createdAt;
+    private List<Long> seatsIds;
 
     public Long getId() {
         return id;
@@ -72,15 +74,19 @@ public class ReservationDTO {
         this.createdAt = createdAt;
     }
 
+    public List<Long> getSeatsIds() { return seatsIds; }
+
+    public void setSeatsIds(List<Long> seatsIds) { this.seatsIds = seatsIds; }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         ReservationDTO that = (ReservationDTO) o;
-        return totalPriceInCents == that.totalPriceInCents && Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(userFullName, that.userFullName) && Objects.equals(sessionId, that.sessionId) && status == that.status && Objects.equals(createdAt, that.createdAt);
+        return totalPriceInCents == that.totalPriceInCents && Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(userFullName, that.userFullName) && Objects.equals(sessionId, that.sessionId) && status == that.status && Objects.equals(createdAt, that.createdAt) && Objects.equals(seatsIds, that.seatsIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userId, userFullName, sessionId, totalPriceInCents, status, createdAt);
+        return Objects.hash(id, userId, userFullName, sessionId, totalPriceInCents, status, createdAt, seatsIds);
     }
 }

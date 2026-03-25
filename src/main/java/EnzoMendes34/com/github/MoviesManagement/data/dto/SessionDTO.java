@@ -18,6 +18,7 @@ public class SessionDTO{
     private SessionLanguage language;
     private int priceInCents;
     private SessionStatus status;
+    private Integer discountPercentage;
 
     public Long getId() {
         return id;
@@ -99,15 +100,19 @@ public class SessionDTO{
         this.status = status;
     }
 
+    public Integer getDiscountPercentage() { return discountPercentage; }
+
+    public void setDiscountPercentage(Integer discountPercentage) { this.discountPercentage = discountPercentage; }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         SessionDTO that = (SessionDTO) o;
-        return priceInCents == that.priceInCents && Objects.equals(id, that.id) && Objects.equals(movieId, that.movieId) && Objects.equals(movieTitle, that.movieTitle) && Objects.equals(roomId, that.roomId) && Objects.equals(roomName, that.roomName) && Objects.equals(startTime, that.startTime) && Objects.equals(endTime, that.endTime) && language == that.language && status == that.status;
+        return priceInCents == that.priceInCents && Objects.equals(id, that.id) && Objects.equals(movieId, that.movieId) && Objects.equals(movieTitle, that.movieTitle) && Objects.equals(roomId, that.roomId) && Objects.equals(roomName, that.roomName) && Objects.equals(startTime, that.startTime) && Objects.equals(endTime, that.endTime) && language == that.language && status == that.status && Objects.equals(discountPercentage, that.discountPercentage);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, movieId, movieTitle, roomId, roomName, startTime, endTime, language, priceInCents, status);
+        return Objects.hash(id, movieId, movieTitle, roomId, roomName, startTime, endTime, language, priceInCents, status, discountPercentage);
     }
 }

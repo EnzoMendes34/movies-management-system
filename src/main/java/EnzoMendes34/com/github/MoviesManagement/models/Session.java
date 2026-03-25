@@ -42,6 +42,9 @@ public class Session implements Serializable {
     @Column(nullable = false)
     private SessionStatus status = SessionStatus.SCHEDULED;
 
+    @Column(name = "discount_percentage")
+    private Integer discountPercentage;
+
     public Long getId() {
         return id;
     }
@@ -102,15 +105,19 @@ public class Session implements Serializable {
         this.status = status;
     }
 
+    public Integer getDiscountPercentage() { return discountPercentage; }
+
+    public void setDiscountPercentage(Integer discountPercentage) { this.discountPercentage = discountPercentage; }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Session session = (Session) o;
-        return priceInCents == session.priceInCents && Objects.equals(id, session.id) && Objects.equals(movie, session.movie) && Objects.equals(room, session.room) && Objects.equals(startTime, session.startTime) && Objects.equals(endTime, session.endTime) && language == session.language && status == session.status;
+        return priceInCents == session.priceInCents && Objects.equals(id, session.id) && Objects.equals(movie, session.movie) && Objects.equals(room, session.room) && Objects.equals(startTime, session.startTime) && Objects.equals(endTime, session.endTime) && language == session.language && status == session.status && Objects.equals(discountPercentage, session.discountPercentage);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, movie, room, startTime, endTime, language, priceInCents, status);
+        return Objects.hash(id, movie, room, startTime, endTime, language, priceInCents, status, discountPercentage);
     }
 }
