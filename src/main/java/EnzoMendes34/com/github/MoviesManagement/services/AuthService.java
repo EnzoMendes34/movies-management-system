@@ -3,20 +3,25 @@ package EnzoMendes34.com.github.MoviesManagement.services;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.auth.AccountCredentialsDTO;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.auth.TokenDTO;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
+import EnzoMendes34.com.github.MoviesManagement.exceptions.NullObjectException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.ResourceNotFoundException;
 import EnzoMendes34.com.github.MoviesManagement.models.User;
 import EnzoMendes34.com.github.MoviesManagement.repositories.UserRepository;
 import EnzoMendes34.com.github.MoviesManagement.security.jwt.JwtTokenProvider;
 import EnzoMendes34.com.github.MoviesManagement.types.UserTypes;
 import EnzoMendes34.com.github.MoviesManagement.utils.ValidationUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +45,6 @@ public class AuthService {
         if(credentials == null || credentials.getUsername() == null || credentials.getPassword() == null) {
             throw new BadCredentialsException("It's not possible to signin with null credentials");
         }
-
 
         //validando a senha com o authenticationManager
         authenticationManager.authenticate(
@@ -80,7 +84,7 @@ public class AuthService {
         User user = new User();
         user.setEmail(credentials.getEmail());
         user.setUsername(credentials.getUsername());
-        user.setPassword(encoder.encode(credentials.getPassword()));
+        user.setPassword(generateHashedPassword(credentials.getPassword()));
         user.setRole(UserTypes.USER);
 
         repository.save(user);
@@ -92,6 +96,19 @@ public class AuthService {
         User user = repository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
-        return tokenProvider.refreshAccessToken(refreshToken);
+        return  tokenProvider.refreshAccessToken(refreshToken);
+    }
+
+    private String generateHashedPassword(String password){
+        PasswordEncoder pbkdf2Encoder = new Pbkdf2PasswordEncoder("", 8,
+                185000, Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256);
+
+        Map<String, PasswordEncoder> encoders = new HashMap<>();
+        encoders.put("pbkdf2", pbkdf2Encoder);
+        DelegatingPasswordEncoder passwordEncoder = new DelegatingPasswordEncoder("pbkdf2", encoders);
+
+        passwordEncoder.setDefaultPasswordEncoderForMatches(passwordEncoder);;
+        return passwordEncoder.encode(password);
+
     }
 }

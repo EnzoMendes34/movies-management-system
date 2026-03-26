@@ -1,44 +1,36 @@
+# Build
+target/
+
+# Dependencies
+/node_modules/
+
+# Logs
+*.log
+
+# Java
 *.class
-
-
-/node_modules
-
-# SSH Keys
-
-*.pem
-*.ppk
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
 *.jar
 *.war
 *.ear
 
-# Merge Files
-*.bak
+# IDEs
+.idea/
+*.iml
+.vscode/
 
-#Gradle temporary files
-target/
+# OS
+.DS_Store
+Thumbs.db
 
-#Eclipse files
-**/.project
-**/.classpath
-**/.settings/
-/bin/
-blog/bin/
-**/.tern-project
-**/.factorypath
+# Env
+.env
 
-#IntelliJ files
-**/*.iml
-**/.idea
-**/.gradle
+# Keys
+*.pem
+*.ppk
 
-#Other Files
-*.ini
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Crash logs
 hs_err_pid*
-/.metadata/
+
+# Misc
+*.ini
