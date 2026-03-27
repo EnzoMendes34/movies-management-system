@@ -1,19 +1,34 @@
 package EnzoMendes34.com.github.MoviesManagement.data.dto;
 
 import EnzoMendes34.com.github.MoviesManagement.types.PaymentStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@Schema(description = "Resposta com informações do pagamento")
 public class PaymentResponseDTO {
 
+    @Schema(description = "ID do pagamento", example = "1")
     private Long id;
+
+    @Schema(description = "ID da reserva", example = "10")
     private Long reservationId;
+
+    @Schema(description = "Valor em centavos", example = "5000")
     private int amountInCents;
+
+    @Schema(description = "Moeda", example = "BRL")
     private String currency;
+
+    @Schema(description = "Status do pagamento", example = "SUCCEEDED")
     private PaymentStatus status;
+
+    @Schema(description = "Data de criação")
     private LocalDateTime createdAt;
+
+    @Schema(description = "Data de pagamento")
     private LocalDateTime paidAt;
 
     public Long getId() {

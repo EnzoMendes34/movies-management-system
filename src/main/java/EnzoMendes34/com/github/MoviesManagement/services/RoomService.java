@@ -1,6 +1,7 @@
 package EnzoMendes34.com.github.MoviesManagement.services;
 
 import EnzoMendes34.com.github.MoviesManagement.data.dto.RoomDTO;
+import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.NullObjectException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.ResourceNotFoundException;
 import EnzoMendes34.com.github.MoviesManagement.mapper.ObjectMapper;
@@ -51,6 +52,10 @@ public class RoomService {
                 "capacity", dto.getCapacity(),
                 "type", dto.getType()
         ));
+
+        if(dto.getCapacity() <= 0 ){
+            throw new BusinessException("Room capacity must be greaer than zero");
+        }
 
         Room room = new Room();
 

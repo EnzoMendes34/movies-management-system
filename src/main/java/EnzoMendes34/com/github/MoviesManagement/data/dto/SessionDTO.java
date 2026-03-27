@@ -2,22 +2,84 @@ package EnzoMendes34.com.github.MoviesManagement.data.dto;
 
 import EnzoMendes34.com.github.MoviesManagement.types.SessionLanguage;
 import EnzoMendes34.com.github.MoviesManagement.types.SessionStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class SessionDTO{
+@Schema(description = "Representa uma sessão de filme com informações de horário, sala e preço.")
+public class SessionDTO {
 
+    @Schema(
+            description = "Identificador único da sessão",
+            example = "1",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
     private Long id;
+
+    @Schema(
+            description = "ID do filme associado à sessão",
+            example = "10"
+    )
     private Long movieId;
+
+    @Schema(
+            description = "Título do filme",
+            example = "Inception",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
     private String movieTitle;
+
+    @Schema(
+            description = "ID da sala onde a sessão será exibida",
+            example = "3"
+    )
     private Long roomId;
+
+    @Schema(
+            description = "Nome da sala",
+            example = "Sala A",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
     private String roomName;
+
+    @Schema(
+            description = "Data e horário de início da sessão",
+            example = "2026-03-27T18:00:00"
+    )
     private LocalDateTime startTime;
+
+    @Schema(
+            description = "Data e horário de término da sessão",
+            example = "2026-03-27T20:30:00"
+    )
     private LocalDateTime endTime;
+
+    @Schema(
+            description = "Idioma da sessão",
+            example = "DUBBED",
+            allowableValues = {"SUBTITLED", "DUBBED"}
+    )
     private SessionLanguage language;
+
+    @Schema(
+            description = "Preço do ingresso em centavos",
+            example = "3000"
+    )
     private int priceInCents;
+
+    @Schema(
+            description = "Status atual da sessão",
+            example = "ACTIVE",
+            allowableValues = {"ACTIVE", "CANCELLED"}
+    )
     private SessionStatus status;
+
+    @Schema(
+            description = "Percentual de desconto aplicado (0 a 100)",
+            example = "10",
+            nullable = true
+    )
     private Integer discountPercentage;
 
     public Long getId() {

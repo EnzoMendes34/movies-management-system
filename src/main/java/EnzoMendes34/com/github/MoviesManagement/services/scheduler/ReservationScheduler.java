@@ -13,8 +13,8 @@ public class ReservationScheduler {
         this.service = service;
     }
 
-    @Scheduled(fixedRate = 60000)//1 min
-    public void expireReservationsJob() {
+    @Scheduled(fixedDelay = 60000)//1 min
+    public void expirePendingReservationsJob() {
         service.expirePendingReservations(15);
     }
 }

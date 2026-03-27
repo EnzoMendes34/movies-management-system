@@ -1,15 +1,26 @@
 package EnzoMendes34.com.github.MoviesManagement.data.dto;
 
 import EnzoMendes34.com.github.MoviesManagement.types.SeatType;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Objects;
 
-public class SeatDTO{
+@Schema(description = "Representação de um assento")
+public class SeatDTO {
 
+    @Schema(description = "ID do assento", example = "1")
     private Long id;
+
+    @Schema(description = "ID da sala", example = "1")
     private Long roomId;
+
+    @Schema(description = "Letra da fileira", example = "A")
     private Character rowLetter;
+
+    @Schema(description = "Número do assento", example = "10")
     private int seatNumber;
+
+    @Schema(description = "Tipo do assento", example = "VIP")
     private SeatType type;
 
     public Long getId() {

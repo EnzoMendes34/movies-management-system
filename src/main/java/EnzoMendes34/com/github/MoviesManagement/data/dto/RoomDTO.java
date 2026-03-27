@@ -1,16 +1,27 @@
 package EnzoMendes34.com.github.MoviesManagement.data.dto;
 
 import EnzoMendes34.com.github.MoviesManagement.types.RoomType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.util.Objects;
 
+@Schema(description = "Representação de uma sala de cinema")
 public class RoomDTO {
 
+    @Schema(description = "ID da sala", example = "1")
     private Long id;
+
+    @Schema(description = "Nome da sala", example = "Sala 1 - IMAX")
     private String roomName;
+
+    @Schema(description = "Tipo da sala", example = "IMAX")
     private RoomType type;
+
+    @Schema(description = "Capacidade total de assentos", example = "120")
     private int capacity;
+
+    @Schema(description = "Indica se a sala está ativa", example = "true")
     private boolean enabled;
 
     public Long getId() {

@@ -1,21 +1,38 @@
 package EnzoMendes34.com.github.MoviesManagement.data.dto;
 
 import EnzoMendes34.com.github.MoviesManagement.types.ReservationStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Schema(description = "Representação de uma reserva")
 public class ReservationDTO {
 
+    @Schema(description = "ID da reserva", example = "1")
     private Long id;
+
+    @Schema(description = "ID do usuário", example = "5")
     private Long userId;
+
+    @Schema(description = "Nome completo do usuário", example = "Enzo Mendes")
     private String userFullName;
+
+    @Schema(description = "ID da sessão", example = "10")
     private Long sessionId;
+
+    @Schema(description = "Preço total em centavos", example = "4500")
     private int totalPriceInCents;
+
+    @Schema(description = "Status da reserva", example = "PENDING")
     private ReservationStatus status;
+
+    @Schema(description = "Data de criação")
     private LocalDateTime createdAt;
+
+    @Schema(description = "Lista de IDs dos assentos", example = "[1,2,3]")
     private List<Long> seatsIds;
 
     public Long getId() {

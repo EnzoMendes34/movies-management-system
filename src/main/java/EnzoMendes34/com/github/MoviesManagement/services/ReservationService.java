@@ -77,7 +77,7 @@ public class ReservationService  {
         ));
 
         return ObjectMapper.parseObject(reservationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Session not found for the given id.")), ReservationDTO.class);
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found for the given id.")), ReservationDTO.class);
     }
 
     //findByUser(Long userId)
@@ -91,6 +91,7 @@ public class ReservationService  {
     }
 
     //cancelReservation(Long reservationId)
+    //Não é possível cancelar reservas confirmadas pois o estorno ainda não está implementado.
     @Transactional
     public ReservationDTO cancelReservation(Long id){
 
@@ -189,7 +190,7 @@ public class ReservationService  {
                 priceWithType = priceWithType * (1 - (discount / 100.0));
             }
 
-            int finalPrice = (int) priceWithType;
+            int finalPrice = (int) Math.round(priceWithType);
 
             totalPriceInReservation += finalPrice;
         }

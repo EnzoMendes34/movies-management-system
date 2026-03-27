@@ -34,3 +34,9 @@ spring:
     baseline-on-migrate: true
 email:
   from: ${EMAIL_USERNAME}
+spring-doc:
+  paths-to-match:
+    - /api/**/v1/**
+    - /auth/**
+  swagger-ui:
+    use-root-path: true
