@@ -3,12 +3,13 @@ package EnzoMendes34.com.github.MoviesManagement.data.dto;
 import EnzoMendes34.com.github.MoviesManagement.types.SessionLanguage;
 import EnzoMendes34.com.github.MoviesManagement.types.SessionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Schema(description = "Representa uma sessão de filme com informações de horário, sala e preço.")
-public class SessionDTO {
+public class SessionDTO extends RepresentationModel<SessionDTO> {
 
     @Schema(
             description = "Identificador único da sessão",

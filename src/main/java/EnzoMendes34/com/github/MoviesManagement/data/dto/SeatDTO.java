@@ -2,11 +2,12 @@ package EnzoMendes34.com.github.MoviesManagement.data.dto;
 
 import EnzoMendes34.com.github.MoviesManagement.types.SeatType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.util.Objects;
 
 @Schema(description = "Representação de um assento")
-public class SeatDTO {
+public class SeatDTO extends RepresentationModel<SeatDTO> {
 
     @Schema(description = "ID do assento", example = "1")
     private Long id;

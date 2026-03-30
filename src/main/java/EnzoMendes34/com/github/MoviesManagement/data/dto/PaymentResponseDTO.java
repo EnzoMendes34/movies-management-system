@@ -3,12 +3,13 @@ package EnzoMendes34.com.github.MoviesManagement.data.dto;
 import EnzoMendes34.com.github.MoviesManagement.types.PaymentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Schema(description = "Resposta com informações do pagamento")
-public class PaymentResponseDTO {
+public class PaymentResponseDTO extends RepresentationModel<PaymentResponseDTO> {
 
     @Schema(description = "ID do pagamento", example = "1")
     private Long id;

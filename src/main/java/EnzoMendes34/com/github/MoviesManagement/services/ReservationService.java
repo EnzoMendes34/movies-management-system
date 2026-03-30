@@ -1,5 +1,7 @@
 package EnzoMendes34.com.github.MoviesManagement.services;
 
+import EnzoMendes34.com.github.MoviesManagement.controllers.PaymentController;
+import EnzoMendes34.com.github.MoviesManagement.controllers.ReservationController;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.ReservationDTO;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.request.ReservationRequestDTO;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
@@ -21,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class ReservationService  {
@@ -67,6 +72,8 @@ public class ReservationService  {
         dto.setUserFullName(user.getFullName());
         dto.setSessionId(session.getId());
 
+        addHateoasLinks(dto);
+
         return dto;
     }
 
@@ -76,8 +83,12 @@ public class ReservationService  {
                 "id", id
         ));
 
-        return ObjectMapper.parseObject(reservationRepository.findById(id)
+        ReservationDTO dto = ObjectMapper.parseObject(reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found for the given id.")), ReservationDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     //findByUser(Long userId)
@@ -87,7 +98,12 @@ public class ReservationService  {
         ));
 
         return reservationRepository.findByUserId(userId, pageable)
-                .map(r -> ObjectMapper.parseObject(r, ReservationDTO.class));
+                .map(r -> {
+                    ReservationDTO dto = ObjectMapper.parseObject(r, ReservationDTO.class);
+                    addHateoasLinks(dto);
+
+                    return dto;
+                });
     }
 
     //cancelReservation(Long reservationId)
@@ -112,7 +128,11 @@ public class ReservationService  {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
 
-        return ObjectMapper.parseObject(reservationRepository.save(reservation), ReservationDTO.class);
+        ReservationDTO dto = ObjectMapper.parseObject(reservationRepository.save(reservation), ReservationDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     //expirePendingReservations(int minutes) expira os acentos reservados por mais de 15 min
@@ -224,5 +244,12 @@ public class ReservationService  {
         }
 
         return reservedSeats;
+    }
+
+    private void addHateoasLinks(ReservationDTO dto) {
+        dto.add(linkTo(methodOn(ReservationController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(ReservationController.class).findByUserId(dto.getUserId(), 0, 12, "asc")).withRel("findByUserId").withType("GET"));
+        dto.add(linkTo(methodOn(PaymentController.class).createPaymentIntent(dto.getId(), dto.getUserId())).withRel("payment").withType("POST"));
+        dto.add(linkTo(methodOn(ReservationController.class).cancelReservation(dto.getId())).withRel("cancel").withType("PATCH"));
     }
 }

@@ -1,5 +1,6 @@
 package EnzoMendes34.com.github.MoviesManagement.services;
 
+import EnzoMendes34.com.github.MoviesManagement.controllers.PaymentController;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.PaymentIntentDTO;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.PaymentResponseDTO;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
@@ -23,6 +24,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class PaymentService {
@@ -90,6 +94,24 @@ public class PaymentService {
         }
     }
 
+    //Esse método será chamado pelo front para verificar o status de pagamento após o redirect do Stripe
+
+    public PaymentResponseDTO getPaymentStatus(Long reservationId){
+        Payment payment = paymentRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found."));
+
+        PaymentResponseDTO dto = new PaymentResponseDTO();
+        dto.setId(payment.getId());
+        dto.setReservationId(reservationId);
+        dto.setAmountInCents(payment.getAmountInCents());
+        dto.setCurrency(payment.getCurrency());
+        dto.setStatus(payment.getStatus());
+        dto.setCreatedAt(payment.getCreatedAt());
+        dto.setPaidAt(payment.getPaidAt());
+
+        return dto.add(linkTo(methodOn(PaymentController.class).getPaymentStatus(dto.getReservationId())).withSelfRel().withType("GET"));
+    }
+
     //handle webhook = chamado pelo stripe após o pagamento ser processado, o Stripe que cuida da segurança não o JWT
     public void handleWebhook(String payload, String sigHeader){
         Event event;
@@ -136,19 +158,19 @@ public class PaymentService {
 
     @Transactional
     private void handlePaymentFailed(Event event) {
-            PaymentIntent intent = (PaymentIntent) event.getDataObjectDeserializer()
-                    .getObject().orElseThrow();
+        PaymentIntent intent = (PaymentIntent) event.getDataObjectDeserializer()
+                .getObject().orElseThrow();
 
-            Payment payment = paymentRepository.findByStripePaymentIntentId(intent.getId())
-                    .orElseThrow(() -> new BusinessException("Payment not found."));
+        Payment payment = paymentRepository.findByStripePaymentIntentId(intent.getId())
+                .orElseThrow(() -> new BusinessException("Payment not found."));
 
-            //Idempotência
-            if (payment.getStatus() == PaymentStatus.FAILED) return;
+        //Idempotência
+        if (payment.getStatus() == PaymentStatus.FAILED) return;
 
-            payment.setStatus(PaymentStatus.FAILED);
-            paymentRepository.save(payment);
+        payment.setStatus(PaymentStatus.FAILED);
+        paymentRepository.save(payment);
 
-            //Cancela e libera os assentos;
+        //Cancela e libera os assentos;
         Reservation reservation = payment.getReservation();
         reservation.setStatus(ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
@@ -156,22 +178,4 @@ public class PaymentService {
         //deleta os reservations_seats para liberar os assentos
         reservationSeatRepository.deleteByReservationId(reservation.getId());
     }
-
-    //Esse método será chamado pelo front para verificar o status de pagamento após o redirect do Stripe
-    public PaymentResponseDTO getPaymentStatus(Long reservationId){
-        Payment payment = paymentRepository.findByReservationId(reservationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found."));
-
-        PaymentResponseDTO dto = new PaymentResponseDTO();
-        dto.setId(payment.getId());
-        dto.setReservationId(reservationId);
-        dto.setAmountInCents(payment.getAmountInCents());
-        dto.setCurrency(payment.getCurrency());
-        dto.setStatus(payment.getStatus());
-        dto.setCreatedAt(payment.getCreatedAt());
-        dto.setPaidAt(payment.getPaidAt());
-
-        return dto;
-    }
-
 }

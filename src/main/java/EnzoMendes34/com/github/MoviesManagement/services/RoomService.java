@@ -1,5 +1,6 @@
 package EnzoMendes34.com.github.MoviesManagement.services;
 
+import EnzoMendes34.com.github.MoviesManagement.controllers.RoomController;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.RoomDTO;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.NullObjectException;
@@ -15,6 +16,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @Service
 public class RoomService {
 
@@ -25,13 +29,20 @@ public class RoomService {
     //findAll()
     public Page<RoomDTO> findAll(Pageable pageable) {
         return repository.findAll(pageable).map(
-                room -> ObjectMapper.parseObject(room, RoomDTO.class)
-        );
+                room -> {
+                    RoomDTO dto = ObjectMapper.parseObject(room, RoomDTO.class);
+                    addHateoasLinks(dto);
+
+                    return dto;
+                });
     }
 
     //findAllEnabled()
     public List<RoomDTO> findAllEnabled() {
-        return ObjectMapper.parseListObjects(repository.findByEnabledTrue(), RoomDTO.class);
+        List<RoomDTO> rooms = ObjectMapper.parseListObjects(repository.findByEnabledTrue(), RoomDTO.class);
+
+        rooms.forEach(this::addHateoasLinks);
+        return rooms;
     }
 
     //findById(Long id)
@@ -40,9 +51,13 @@ public class RoomService {
                 "id", id
         ));
 
-        return ObjectMapper.parseObject(repository.findById(id)
+        RoomDTO dto = ObjectMapper.parseObject(repository.findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException("Room not found for this id.")),
                 RoomDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     //create(RoomDTO dto)
@@ -61,9 +76,13 @@ public class RoomService {
 
         updateEntityFromDTO(room, dto);
 
-        return ObjectMapper.parseObject(
+        RoomDTO savedDto = ObjectMapper.parseObject(
                 repository.save(room), RoomDTO.class
         );
+
+        addHateoasLinks(savedDto);
+
+        return savedDto;
     }
 
     //update(RoomDTO dto)
@@ -84,9 +103,13 @@ public class RoomService {
 
         updateEntityFromDTO(room, dto);
 
-        return ObjectMapper.parseObject(
+        RoomDTO savedDto = ObjectMapper.parseObject(
                 repository.save(room), RoomDTO.class
         );
+
+        addHateoasLinks(savedDto);
+
+        return savedDto;
     }
 
     //disable(Long id)
@@ -99,12 +122,26 @@ public class RoomService {
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found for this id."));
 
         room.setEnabled(false);
-        return ObjectMapper.parseObject(repository.save(room), RoomDTO.class);
+        RoomDTO dto = ObjectMapper.parseObject(repository.save(room), RoomDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     private void updateEntityFromDTO(Room room, RoomDTO dto){
         room.setRoomName(dto.getRoomName());
         room.setCapacity(dto.getCapacity());
         room.setType(dto.getType());
+    }
+
+    private void addHateoasLinks(RoomDTO dto) {
+        //findAll, findAllEnabled, findById, create, update, disable
+        dto.add(linkTo(methodOn(RoomController.class).findAll(1, 12, "asc")).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(RoomController.class).findAllEnabled()).withRel("findAllEnabled").withType("GET"));
+        dto.add(linkTo(methodOn(RoomController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(RoomController.class).create(dto)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(RoomController.class).update(dto)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(RoomController.class).disable(dto.getId())).withRel("disable").withType("PATCH"));
     }
 }

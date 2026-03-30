@@ -10,7 +10,7 @@ spring:
   application:
     name: MoviesManagement
   mail:
-    host: smtp.gmai.com
+    host: smtp.gmail.com
     port: 587
     username: ${EMAIL_USERNAME}
     password: ${EMAIL_PASSWORD}

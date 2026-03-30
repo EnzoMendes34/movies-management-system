@@ -1,5 +1,7 @@
 package EnzoMendes34.com.github.MoviesManagement.services;
 
+import EnzoMendes34.com.github.MoviesManagement.controllers.SeatController;
+import EnzoMendes34.com.github.MoviesManagement.controllers.SessionController;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.SessionDTO;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.NullObjectException;
@@ -17,6 +19,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class SessionService {
@@ -36,8 +41,12 @@ public class SessionService {
     //findAll(Pageable)
     public Page<SessionDTO> findAll(Pageable pageable) {
         return repository.findAll(pageable).map(
-                session -> ObjectMapper.parseObject(session, SessionDTO.class)
-        );
+                session -> {
+                    SessionDTO dto = ObjectMapper.parseObject(session, SessionDTO.class);
+                    addHateoasLinks(dto);
+
+                    return dto;
+                });
     }
 
     //findById(Long id)
@@ -46,9 +55,13 @@ public class SessionService {
                 "id", id
         ));
 
-        return ObjectMapper.parseObject(repository.findById(id)
+        SessionDTO dto = ObjectMapper.parseObject(repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Session not found for the given Id")),
                 SessionDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     //findByMovieId(Long movieId, SessionStatus status)
@@ -58,8 +71,12 @@ public class SessionService {
                 "sessionStatus", status
         ));
 
-        return ObjectMapper.parseListObjects(repository.findByMovieIdAndStatus(movieId, status),
+        List<SessionDTO> sessions = ObjectMapper.parseListObjects(repository.findByMovieIdAndStatus(movieId, status),
                 SessionDTO.class);
+
+        sessions.forEach(this::addHateoasLinks);
+
+        return sessions;
     }
 
     //create(SessionDTO)
@@ -105,8 +122,13 @@ public class SessionService {
 
         updateEntityFromDTO(session, dto);
 
-        return ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+        SessionDTO savedDto = ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+
+        addHateoasLinks(savedDto);
+
+        return savedDto;
     }
+
     //update(SessionDTO)
     public SessionDTO update(SessionDTO dto) {
         if (dto == null){
@@ -154,7 +176,11 @@ public class SessionService {
 
         updateEntityFromDTO(session, dto);
 
-        return ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+        SessionDTO savedDto = ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+
+        addHateoasLinks(savedDto);
+
+        return savedDto;
     }
 
     //cancel(Long id)
@@ -168,7 +194,11 @@ public class SessionService {
 
         session.setStatus(SessionStatus.CANCELLED);
 
-        return ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+        SessionDTO dto = ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     //helpers
@@ -186,5 +216,15 @@ public class SessionService {
         session.setPriceInCents(dto.getPriceInCents());
         session.setStatus(dto.getStatus());
         session.setDiscountPercentage(dto.getDiscountPercentage());
+    }
+
+    private void addHateoasLinks(SessionDTO dto){
+        dto.add(linkTo(methodOn(SessionController.class).findAll(1, 12, "asc")).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(SessionController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(SessionController.class).findByMovieIdAndStatus(dto.getMovieId(), dto.getStatus())).withRel("findByMovieIdAndStatus").withType("GET"));
+        dto.add(linkTo(methodOn(SeatController.class).findAllAvailable(dto.getId(), dto.getRoomId())).withRel("availableSeatsInSession").withType("GET"));
+        dto.add(linkTo(methodOn(SessionController.class).create(dto)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(SessionController.class).update(dto)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(SessionController.class).cancelSession(dto.getId())).withRel("cancelSession").withType("PATCH"));
     }
 }

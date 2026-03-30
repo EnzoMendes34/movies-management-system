@@ -1,5 +1,6 @@
 package EnzoMendes34.com.github.MoviesManagement.services;
 
+import EnzoMendes34.com.github.MoviesManagement.controllers.MovieController;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.MovieDTO;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.NullObjectException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.ResourceNotFoundException;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class MovieService {
@@ -23,8 +26,12 @@ public class MovieService {
     //findAll()
     public Page<MovieDTO> findAll(Pageable pageable) {
         return repository.findAll(pageable).map(
-                movie -> ObjectMapper.parseObject(movie, MovieDTO.class)
-        );
+                movie -> {
+                    MovieDTO dto = ObjectMapper.parseObject(movie, MovieDTO.class);
+                    addHateoasLinks(dto);
+
+                    return dto;
+                });
     }
 
     //findById(Long id)
@@ -33,15 +40,23 @@ public class MovieService {
                 "id", id
         ));
 
-        return ObjectMapper.parseObject(repository.findById(id)
+        MovieDTO dto = ObjectMapper.parseObject(repository.findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException("Movie not found for this id.")),
                 MovieDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
     //FindByTitle(titulo, Pageable)
     public Page<MovieDTO> findByTitle(String title, Pageable pageable) {
         return repository.findByTitleContainingIgnoreCase(title, pageable).map(
-                movie -> ObjectMapper.parseObject(movie, MovieDTO.class)
-        );
+                movie -> {
+                    MovieDTO dto = ObjectMapper.parseObject(movie, MovieDTO.class);
+                    addHateoasLinks(dto);
+
+                    return dto;
+                });
     }
     //create
     public MovieDTO create(MovieDTO dto) {
@@ -54,9 +69,11 @@ public class MovieService {
         updateEntityFromDTO(movie, dto);
 
 
-        return ObjectMapper.parseObject(
-                repository.save(movie), MovieDTO.class
-        );
+        MovieDTO savedDto = ObjectMapper.parseObject( repository.save(movie), MovieDTO.class);
+
+        addHateoasLinks(savedDto);
+
+        return savedDto;
     }
 
     //update
@@ -74,9 +91,13 @@ public class MovieService {
 
         updateEntityFromDTO(movie, dto);
 
-        return ObjectMapper.parseObject(
+        MovieDTO updatedDto = ObjectMapper.parseObject(
                 repository.save(movie), MovieDTO.class
         );
+
+        addHateoasLinks(updatedDto);
+
+        return updatedDto;
     }
 
     //disable(id)
@@ -89,7 +110,11 @@ public class MovieService {
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found for this id."));
 
         movie.setEnabled(false);
-        return ObjectMapper.parseObject(repository.save(movie), MovieDTO.class);
+        MovieDTO dto = ObjectMapper.parseObject(repository.save(movie), MovieDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     private void updateEntityFromDTO(Movie movie, MovieDTO dto){
@@ -100,5 +125,15 @@ public class MovieService {
         movie.setDurationInMinutes(dto.getDurationInMinutes());
         movie.setPosterUrl(dto.getPosterUrl());
         movie.setReleaseDate(dto.getReleaseDate());
+    }
+
+    private void addHateoasLinks(MovieDTO dto) {
+        //findAll, findById, findByTitle, create, update, disable
+        dto.add(linkTo(methodOn(MovieController.class).findAll(1, 12, "asc")).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(MovieController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(MovieController.class).findByTitle("", 1, 12, "asc")).withRel("findByTitle").withType("GET"));
+        dto.add(linkTo(methodOn(MovieController.class).create(dto)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(MovieController.class).update(dto)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(MovieController.class).disableMovie(dto.getId())).withRel("disableMovie").withType("PATCH"));
     }
 }

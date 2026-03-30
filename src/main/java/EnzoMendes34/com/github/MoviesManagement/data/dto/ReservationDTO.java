@@ -3,13 +3,14 @@ package EnzoMendes34.com.github.MoviesManagement.data.dto;
 import EnzoMendes34.com.github.MoviesManagement.types.ReservationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
 @Schema(description = "Representação de uma reserva")
-public class ReservationDTO {
+public class ReservationDTO extends RepresentationModel<ReservationDTO> {
 
     @Schema(description = "ID da reserva", example = "1")
     private Long id;

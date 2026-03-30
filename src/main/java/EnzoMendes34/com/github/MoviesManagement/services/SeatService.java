@@ -1,5 +1,6 @@
 package EnzoMendes34.com.github.MoviesManagement.services;
 
+import EnzoMendes34.com.github.MoviesManagement.controllers.SeatController;
 import EnzoMendes34.com.github.MoviesManagement.data.dto.SeatDTO;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.BusinessException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.NullObjectException;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class SeatService {
@@ -32,9 +36,13 @@ public class SeatService {
                 "id", id
         ));
 
-        return ObjectMapper.parseObject(repository.findById(id)
+        SeatDTO dto = ObjectMapper.parseObject(repository.findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException("No seats found for this id;")),
                 SeatDTO.class);
+
+        addHateoasLinks(dto);
+
+        return dto;
     }
 
     //findByRoomId(Long roomId)
@@ -43,7 +51,11 @@ public class SeatService {
                 "roomId", roomId
         ));
 
-        return ObjectMapper.parseListObjects(repository.findByRoomId(roomId), SeatDTO.class);
+        List<SeatDTO> seats = ObjectMapper.parseListObjects(repository.findByRoomId(roomId), SeatDTO.class);
+
+        seats.forEach(this::addHateoasLinks);
+
+        return seats;
     }
 
     //findAvailableSeats(Long sessionId, Long roomId)
@@ -80,7 +92,11 @@ public class SeatService {
 
         updateEntityFromDTO(seat, dto);
 
-        return ObjectMapper.parseObject(repository.save(seat), SeatDTO.class);
+        SeatDTO savedDto = ObjectMapper.parseObject(repository.save(seat), SeatDTO.class);
+
+        addHateoasLinks(savedDto);
+
+        return savedDto;
     }
 
     //update(SeatDTO)
@@ -102,7 +118,11 @@ public class SeatService {
 
         updateEntityFromDTO(seat, dto);
 
-        return ObjectMapper.parseObject(repository.save(seat), SeatDTO.class);
+        SeatDTO savedDto = ObjectMapper.parseObject(repository.save(seat), SeatDTO.class);
+
+        addHateoasLinks(savedDto);
+
+        return savedDto;
     }
     
     //delete(LongId)
@@ -110,7 +130,7 @@ public class SeatService {
         ValidationUtils.validateRequiredFields(Map.of(
                 "id", id
         ));
-        
+
         Seat entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No seats found for the given Id"));
         
@@ -125,5 +145,14 @@ public class SeatService {
         seat.setRoom(room);
         seat.setType(dto.getType());
         seat.setRowLetter(dto.getRowLetter());
+    }
+
+    private void addHateoasLinks(SeatDTO dto) {
+        //findById, findByRoomId, findAvailableSeats, create, update
+        dto.add(linkTo(methodOn(SeatController.class).findById(dto.getId())).withSelfRel().withType("GET"));
+        dto.add(linkTo(methodOn(SeatController.class).findByRoomId(dto.getRoomId())).withRel("findByRoomId").withType("GET"));
+        dto.add(linkTo(methodOn(SeatController.class).create(dto)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(SeatController.class).update(dto)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(SeatController.class).deleteSeat(dto.getId())).withRel("deleteSeat").withType("DELETE"));
     }
 }

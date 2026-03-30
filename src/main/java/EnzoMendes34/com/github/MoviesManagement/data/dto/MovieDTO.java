@@ -2,12 +2,13 @@ package EnzoMendes34.com.github.MoviesManagement.data.dto;
 
 import EnzoMendes34.com.github.MoviesManagement.types.MovieRating;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDate;
 import java.util.Objects;
 
 @Schema(description = "Representação de um filme")
-public class MovieDTO {
+public class MovieDTO extends RepresentationModel<MovieDTO> {
 
     @Schema(description = "ID do filme", example = "1")
     private Long id;

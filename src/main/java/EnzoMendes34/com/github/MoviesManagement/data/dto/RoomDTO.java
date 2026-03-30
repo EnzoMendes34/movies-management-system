@@ -3,11 +3,12 @@ package EnzoMendes34.com.github.MoviesManagement.data.dto;
 import EnzoMendes34.com.github.MoviesManagement.types.RoomType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.util.Objects;
 
 @Schema(description = "Representação de uma sala de cinema")
-public class RoomDTO {
+public class RoomDTO extends RepresentationModel<RoomDTO> {
 
     @Schema(description = "ID da sala", example = "1")
     private Long id;
