@@ -6,6 +6,8 @@ import EnzoMendes34.com.github.MoviesManagement.data.dto.PaymentResponseDTO;
 import EnzoMendes34.com.github.MoviesManagement.services.PaymentService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,12 +39,13 @@ public class PaymentController implements PaymentControllerDocs {
                 return ResponseEntity.ok().build();
     }
 
-    @GetMapping(value = "/{reservationId}",
+    @GetMapping(value = "/status/{reservationId}",
     produces = {MediaType.APPLICATION_JSON_VALUE ,MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_YAML_VALUE}
     )
     @Override
     public ResponseEntity<PaymentResponseDTO> getPaymentStatus(
-            @PathVariable("reservationId") Long reservationId) {
-        return ResponseEntity.ok(service.getPaymentStatus(reservationId));
+            @PathVariable("reservationId") Long reservationId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(service.getPaymentStatus(reservationId, userDetails.getUsername()));
     }
 }

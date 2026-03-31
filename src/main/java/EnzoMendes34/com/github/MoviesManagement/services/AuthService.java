@@ -80,6 +80,7 @@ public class AuthService {
         user.setEmail(credentials.getEmail());
         user.setUsername(credentials.getUsername());
         user.setPassword(encoder.encode(credentials.getPassword()));
+        user.setFullName(credentials.getFullName());
         user.setRole(UserTypes.USER);
 
         repository.save(user);

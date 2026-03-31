@@ -7,12 +7,17 @@ import EnzoMendes34.com.github.MoviesManagement.exceptions.NullObjectException;
 import EnzoMendes34.com.github.MoviesManagement.exceptions.ResourceNotFoundException;
 import EnzoMendes34.com.github.MoviesManagement.mapper.ObjectMapper;
 import EnzoMendes34.com.github.MoviesManagement.models.Room;
+import EnzoMendes34.com.github.MoviesManagement.models.Seat;
 import EnzoMendes34.com.github.MoviesManagement.repositories.RoomRepository;
+import EnzoMendes34.com.github.MoviesManagement.repositories.SeatRepository;
+import EnzoMendes34.com.github.MoviesManagement.types.SeatType;
 import EnzoMendes34.com.github.MoviesManagement.utils.ValidationUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +28,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class RoomService {
 
     private final RoomRepository repository;
+    private final SeatRepository seatRepository;
 
-    public RoomService(RoomRepository repository) { this.repository = repository; }
+    public RoomService(RoomRepository repository, SeatRepository seatRepository) {
+        this.repository = repository;
+        this.seatRepository = seatRepository;
+    }
 
     //findAll()
     public Page<RoomDTO> findAll(Pageable pageable) {
@@ -61,6 +70,7 @@ public class RoomService {
     }
 
     //create(RoomDTO dto)
+    @Transactional //garantir que sala e assentos sejam salvos juntos
     public RoomDTO create(RoomDTO dto) {
         ValidationUtils.validateRequiredFields(Map.of(
                 "roomName", dto.getRoomName(),
@@ -69,17 +79,18 @@ public class RoomService {
         ));
 
         if(dto.getCapacity() <= 0 ){
-            throw new BusinessException("Room capacity must be greaer than zero");
+            throw new BusinessException("Room capacity must be greater than zero");
         }
 
         Room room = new Room();
 
         updateEntityFromDTO(room, dto);
+        room.setEnabled(true);
+        Room savedRoom = repository.save(room);
 
-        RoomDTO savedDto = ObjectMapper.parseObject(
-                repository.save(room), RoomDTO.class
-        );
+        generateSeatsForRoom(savedRoom);
 
+        RoomDTO savedDto = ObjectMapper.parseObject(savedRoom, RoomDTO.class);
         addHateoasLinks(savedDto);
 
         return savedDto;
@@ -144,4 +155,33 @@ public class RoomService {
         dto.add(linkTo(methodOn(RoomController.class).update(dto)).withRel("update").withType("PUT"));
         dto.add(linkTo(methodOn(RoomController.class).disable(dto.getId())).withRel("disable").withType("PATCH"));
     }
+
+    //Lógica para gerar seats automaticamente com os parâmetros da Room, para não criar seats manualmente
+    private void generateSeatsForRoom(Room room) {
+        int capacity = room.getCapacity();
+        int seatsPerRow = 10; //todo: ajustar DTO e entity para receber isso
+        List<Seat> seats = new ArrayList<>();
+
+        char rowLetter = 'A';
+        int currentSeatInRow = 1;
+
+        for(int i = 0; i < capacity; i++){
+            Seat seat = new Seat();
+            seat.setRowLetter(rowLetter);
+            seat.setSeatNumber(currentSeatInRow);
+            seat.setRoom(room);
+            seat.setType(SeatType.STANDARD);
+
+            seats.add(seat);
+
+            if(currentSeatInRow >= seatsPerRow){
+                rowLetter++;
+                currentSeatInRow = 1;
+            } else {
+                currentSeatInRow++;
+            }
+        }
+        seatRepository.saveAll(seats);
+    }
+
 }

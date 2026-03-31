@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Tag(name = "Payments", description = "Gerenciamento de pagamentos e integração com Stripe")
 public interface PaymentControllerDocs {
@@ -55,6 +56,7 @@ public interface PaymentControllerDocs {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     ResponseEntity<PaymentResponseDTO> getPaymentStatus(
-            @Parameter(description = "ID da reserva", example = "10") Long reservationId
+            @Parameter(description = "ID da reserva", example = "10") Long reservationId,
+            @Parameter(hidden = true) UserDetails userDetails
     );
 }

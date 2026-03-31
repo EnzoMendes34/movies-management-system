@@ -19,8 +19,9 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -95,10 +96,14 @@ public class PaymentService {
     }
 
     //Esse método será chamado pelo front para verificar o status de pagamento após o redirect do Stripe
-
-    public PaymentResponseDTO getPaymentStatus(Long reservationId){
-        Payment payment = paymentRepository.findByReservationId(reservationId)
+    @Transactional(readOnly = true)
+    public PaymentResponseDTO getPaymentStatus(Long reservationId, String username){
+        Payment payment = paymentRepository.findByReservationIdWithDetails(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found."));
+
+        if (!payment.getReservation().getUser().getUsername().equals(username)) {
+            throw new BusinessException("You don't have permission to view this payment status.");
+        }
 
         PaymentResponseDTO dto = new PaymentResponseDTO();
         dto.setId(payment.getId());
@@ -109,7 +114,7 @@ public class PaymentService {
         dto.setCreatedAt(payment.getCreatedAt());
         dto.setPaidAt(payment.getPaidAt());
 
-        return dto.add(linkTo(methodOn(PaymentController.class).getPaymentStatus(dto.getReservationId())).withSelfRel().withType("GET"));
+        return dto.add(linkTo(methodOn(PaymentController.class).getPaymentStatus(dto.getReservationId(), null)).withSelfRel().withType("GET"));
     }
 
     //handle webhook = chamado pelo stripe após o pagamento ser processado, o Stripe que cuida da segurança não o JWT
