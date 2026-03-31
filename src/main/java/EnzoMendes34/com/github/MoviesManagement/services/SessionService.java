@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -42,7 +43,7 @@ public class SessionService {
     public Page<SessionDTO> findAll(Pageable pageable) {
         return repository.findAll(pageable).map(
                 session -> {
-                    SessionDTO dto = ObjectMapper.parseObject(session, SessionDTO.class);
+                    SessionDTO dto = toDto(session);
                     addHateoasLinks(dto);
 
                     return dto;
@@ -55,9 +56,8 @@ public class SessionService {
                 "id", id
         ));
 
-        SessionDTO dto = ObjectMapper.parseObject(repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Session not found for the given Id")),
-                SessionDTO.class);
+        SessionDTO dto = toDto(repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Session not found for the given Id")));
 
         addHateoasLinks(dto);
 
@@ -71,8 +71,8 @@ public class SessionService {
                 "sessionStatus", status
         ));
 
-        List<SessionDTO> sessions = ObjectMapper.parseListObjects(repository.findByMovieIdAndStatus(movieId, status),
-                SessionDTO.class);
+        List<SessionDTO> sessions = repository.findByMovieIdAndStatus(movieId, status)
+                .stream().map(this::toDto).toList();
 
         sessions.forEach(this::addHateoasLinks);
 
@@ -122,7 +122,7 @@ public class SessionService {
 
         updateEntityFromDTO(session, dto);
 
-        SessionDTO savedDto = ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+        SessionDTO savedDto = toDto(repository.save(session));
 
         addHateoasLinks(savedDto);
 
@@ -176,7 +176,7 @@ public class SessionService {
 
         updateEntityFromDTO(session, dto);
 
-        SessionDTO savedDto = ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+        SessionDTO savedDto = toDto(repository.save(session));
 
         addHateoasLinks(savedDto);
 
@@ -194,7 +194,7 @@ public class SessionService {
 
         session.setStatus(SessionStatus.CANCELLED);
 
-        SessionDTO dto = ObjectMapper.parseObject(repository.save(session), SessionDTO.class);
+        SessionDTO dto = toDto(repository.save(session));
 
         addHateoasLinks(dto);
 
@@ -226,5 +226,15 @@ public class SessionService {
         dto.add(linkTo(methodOn(SessionController.class).create(dto)).withRel("create").withType("POST"));
         dto.add(linkTo(methodOn(SessionController.class).update(dto)).withRel("update").withType("PUT"));
         dto.add(linkTo(methodOn(SessionController.class).cancelSession(dto.getId())).withRel("cancelSession").withType("PATCH"));
+    }
+
+    private SessionDTO toDto(Session session) {
+        SessionDTO dto = ObjectMapper.parseObject(session, SessionDTO.class);
+        dto.setMovieId(session.getMovie().getId());
+        dto.setMovieTitle(session.getMovie().getTitle());
+        dto.setRoomId(session.getRoom().getId());
+        dto.setRoomName(session.getRoom().getRoomName());
+
+        return dto;
     }
 }

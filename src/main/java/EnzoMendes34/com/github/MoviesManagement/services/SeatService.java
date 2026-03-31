@@ -36,9 +36,8 @@ public class SeatService {
                 "id", id
         ));
 
-        SeatDTO dto = ObjectMapper.parseObject(repository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException("No seats found for this id;")),
-                SeatDTO.class);
+        SeatDTO dto = toDto(repository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("No seats found for this id;")));
 
         addHateoasLinks(dto);
 
@@ -51,7 +50,7 @@ public class SeatService {
                 "roomId", roomId
         ));
 
-        List<SeatDTO> seats = ObjectMapper.parseListObjects(repository.findByRoomId(roomId), SeatDTO.class);
+        List<SeatDTO> seats = repository.findByRoomId(roomId).stream().map(this::toDto).toList();
 
         seats.forEach(this::addHateoasLinks);
 
@@ -65,7 +64,7 @@ public class SeatService {
                 "roomId", roomId
         ));
 
-        return ObjectMapper.parseListObjects(repository.findAvailableSeatsBySessionAndRoom(sessionId, roomId) , SeatDTO.class);
+        return repository.findAvailableSeatsBySessionAndRoom(sessionId, roomId).stream().map(this::toDto).toList();
     }
 
     //create(SeatDTO)
@@ -92,7 +91,7 @@ public class SeatService {
 
         updateEntityFromDTO(seat, dto);
 
-        SeatDTO savedDto = ObjectMapper.parseObject(repository.save(seat), SeatDTO.class);
+        SeatDTO savedDto = toDto(repository.save(seat));
 
         addHateoasLinks(savedDto);
 
@@ -118,7 +117,7 @@ public class SeatService {
 
         updateEntityFromDTO(seat, dto);
 
-        SeatDTO savedDto = ObjectMapper.parseObject(repository.save(seat), SeatDTO.class);
+        SeatDTO savedDto = toDto(repository.save(seat));
 
         addHateoasLinks(savedDto);
 
@@ -154,5 +153,12 @@ public class SeatService {
         dto.add(linkTo(methodOn(SeatController.class).create(dto)).withRel("create").withType("POST"));
         dto.add(linkTo(methodOn(SeatController.class).update(dto)).withRel("update").withType("PUT"));
         dto.add(linkTo(methodOn(SeatController.class).deleteSeat(dto.getId())).withRel("deleteSeat").withType("DELETE"));
+    }
+
+    private SeatDTO toDto(Seat seat){
+        SeatDTO dto = ObjectMapper.parseObject(seat, SeatDTO.class);
+        dto.setRoomId(seat.getRoom().getId());
+
+        return dto;
     }
 }

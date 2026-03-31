@@ -67,7 +67,7 @@ public class ReservationService  {
 
         reservationSeatRepository.saveAll(reservedSeats);
 
-        ReservationDTO dto = ObjectMapper.parseObject(persistedReservation, ReservationDTO.class);
+        ReservationDTO dto = toDto(persistedReservation);
         dto.setSeatsIds(requestDTO.getSeatIds());
         dto.setUserFullName(user.getFullName());
         dto.setSessionId(session.getId());
@@ -83,8 +83,8 @@ public class ReservationService  {
                 "id", id
         ));
 
-        ReservationDTO dto = ObjectMapper.parseObject(reservationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found for the given id.")), ReservationDTO.class);
+        ReservationDTO dto = toDto(reservationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found for the given id.")));
 
         addHateoasLinks(dto);
 
@@ -99,7 +99,7 @@ public class ReservationService  {
 
         return reservationRepository.findByUserId(userId, pageable)
                 .map(r -> {
-                    ReservationDTO dto = ObjectMapper.parseObject(r, ReservationDTO.class);
+                    ReservationDTO dto = toDto(r);
                     addHateoasLinks(dto);
 
                     return dto;
@@ -128,7 +128,7 @@ public class ReservationService  {
 
         reservation.setStatus(ReservationStatus.CANCELLED);
 
-        ReservationDTO dto = ObjectMapper.parseObject(reservationRepository.save(reservation), ReservationDTO.class);
+        ReservationDTO dto = toDto(reservationRepository.save(reservation));
 
         addHateoasLinks(dto);
 
@@ -251,5 +251,14 @@ public class ReservationService  {
         dto.add(linkTo(methodOn(ReservationController.class).findByUserId(dto.getUserId(), 0, 12, "asc")).withRel("findByUserId").withType("GET"));
         dto.add(linkTo(methodOn(PaymentController.class).createPaymentIntent(dto.getId(), dto.getUserId())).withRel("payment").withType("POST"));
         dto.add(linkTo(methodOn(ReservationController.class).cancelReservation(dto.getId())).withRel("cancel").withType("PATCH"));
+    }
+
+    private ReservationDTO toDto(Reservation reservation) {
+        ReservationDTO dto = ObjectMapper.parseObject(reservation, ReservationDTO.class);
+        dto.setUserId(reservation.getUser().getId());
+        dto.setUserFullName(reservation.getUser().getFullName());
+        dto.setSessionId(reservation.getSession().getId());
+
+        return dto;
     }
 }
