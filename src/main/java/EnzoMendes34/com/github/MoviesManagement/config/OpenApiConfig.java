@@ -13,9 +13,9 @@ public class OpenApiConfig {
     OpenAPI customOpenApi() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("API de gestão de cinema")
+                        .title("FinalCut API ")
                         .version("v1")
-                        .description("API RESTful para gerenciamento de cinema, contemplando autentiação, catálogo de filmes, controle de sessões, gerenciamento " +
+                        .description("API REST para gerenciamento de cinema, contemplando autenticação, catálogo de filmes, controle de sessões, gerenciamento " +
                                 "de salas e assentos, reservas com controle de concorrência e integração de pagamentos via Stripe.")
                         .termsOfService("https://github.com/EnzoMendes34")
                         .license(new License()
